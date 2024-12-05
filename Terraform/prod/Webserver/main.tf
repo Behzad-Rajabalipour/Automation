@@ -48,7 +48,7 @@ resource "aws_instance" "public_instance" {
   count                       = length(data.terraform_remote_state.prod_net_tfstate.outputs.public_subnet_ids)
   ami                         = data.aws_ami.latest_amazon_linux.id
   instance_type               = lookup(var.instance_type, var.env)
-  key_name                    = aws_key_pair.keyName.key_name    # because we used count in key_name so we have to give it's index
+  key_name                    = aws_key_pair.keyName[0].key_name    # because we used count in key_name so we have to give it's index
   security_groups             = [aws_security_group.public_instance_SG.id]
   subnet_id                   = data.terraform_remote_state.prod_net_tfstate.outputs.public_subnet_ids[count.index] # it use s3/dev/network/terraform.tfstate => outputs. you can also see it in Network/output.tf file
   associate_public_ip_address = true

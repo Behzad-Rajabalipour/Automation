@@ -129,10 +129,15 @@ resource "aws_instance" "private_instance" {
   )
 }
 
-# Adding public key into the AWS if it doesn't exist
 resource "aws_key_pair" "keyName" {
+  count      = length(data.aws_key_pair.existing_key.ids) == 0 ? 1 : 0
   key_name   = var.keyName
-  public_key = file("./${var.keyName}.pub")        # file, use my local linux computer(wsl) files. key pairs must be in ~/.ssh address to be able to change security level(chmod 400)
+  public_key = file("./${var.keyName}.pub")  # Replace with the path to your public key
+}
+
+data "aws_key_pair" "existing_key" {
+  key_name = var.keyName
+  # This will look up the key pair and return an empty result if it doesn't exist
 }
 
 #security Group

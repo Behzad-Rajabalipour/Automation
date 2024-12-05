@@ -1,0 +1,40 @@
+---
+- hosts: tag_type1        # for inventory = hosts_novars.txt
+  gather_facts: True
+  become: yes
+  
+  vars:
+    source_file: ./index.j2
+    dest_file: /var/www/html
+   
+
+  tasks:
+    - name: Install Apache Web Server for RPM
+      yum: name=httpd state=latest
+      when: ansible_os_family == "RedHat"
+
+    
+    - name: Print Linux Family
+      debug: var=ansible_os_family
+      
+    - name: Get the local IPv4 address
+      shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
+      register: myip
+      
+    - name:     Generate index.html from jinja2 template and copy to the remote host
+      template: src={{ source_file }} dest={{ dest_file }}/index.html mode=0555     # replacing The content of the template(here is Jinja2 template) which includes variables, loops, and condition with dest(index.html). the purpose is to make the dynamic webpage 
+      notify:   Restart Httpd
+      when:     ansible_os_family == "RedHat"
+      
+    - name: Start Apache Web Server
+      service: name=httpd state=started enabled=yes
+      when: ansible_os_family == "RedHat"
+
+    
+  handlers:
+  - name: Restart Httpd
+    service: name=httpd state=restarted
+    when: ansible_os_family == "RedHat"
+
+    
+    

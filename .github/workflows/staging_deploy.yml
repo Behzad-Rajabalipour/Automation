@@ -1,0 +1,183 @@
+# whenever you edit staging/main.tf file (add service or ...) and then push it into prod branch, this GitHub Action (workflow) will be triggered.
+# you can trigger this Github action with 1. push prod(local) to prod(remote)
+# or 2. push staging(local) to staging(remote), then push staging(remote) to prod(remote)
+
+name: "Terraform - Staging"
+# https://gaunacode.com/deploying-terraform-at-scale-with-github-actions
+on:
+  push:
+    branches:
+    - prod
+    paths:
+    - staging/**
+
+  pull_request:
+    branches:
+    - prod
+    paths: 
+    - staging/**      #  change to any file or folder recursively within the staging directory
+
+  # A push occurs to the prod branch.
+  # The changes involve files in the staging/ directory or its subdirectories, within the prod branch
+  # A change to prod/staging/main.tf will trigger the workflow.
+  # A change to prod/README.md will not trigger the workflow.
+
+permissions:
+  contents: read      # workflow grants read-only access to repository content.
+  pull-requests: write  # workflow allows creating comments on pull requests.
+
+jobs:                 # every job needs a host to run the job
+  terraform:
+    name: "Terraform"
+    runs-on: ubuntu-latest        # for run this job we need host, which here is ubuntu
+    environment: staging          # name should be same you used in github environment
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN:  ${{ secrets.AWS_SESSION_TOKEN }}
+
+    steps:        # there are steps
+        # The actions/checkout action is a pre-built GitHub Action that checks out (downloads) the repository's code from GitHub into the runner's environment during a GitHub Actions workflow
+        # actions/checkout@v3 is pre-built GitHub Action checkout version 3
+      - name: Checkout
+        uses: actions/checkout@v3     
+        
+        # hashicorp/setup-terraform@v2@ is pre-built GitHub Action Terraform version2
+        # 1.1.9 is a version of terraform itself
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.1.9
+          terraform_wrapper: true
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt 
+        continue-on-error: true
+        working-directory: ../../Terraform/prod/Network      # it's all in prod branch
+
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ../../Terraform/prod/Network 
+
+           
+      - name: Terraform Validate        # Terraform validate is for check that Does or Does Not Connect to Providers(aws in this case)
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ../../Terraform/prod/Network 
+
+    
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -input=false -no-color -out tf.plan     # output the plan result in tf.plan
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
+        continue-on-error: true   # ensures subsequent steps run even if this fails.
+
+      # steps = all steps
+      # validate = id of validate step
+      # outputs.stdout = print it out
+      # you can see this log result in Github/Action
+      - name: Get result
+        run: echo "${{ steps.validate.outputs.stdout }}"    
+      
+      # the terraform show: converts the Terraform execution plan (tf.plan) into a readable format (plan.txt).
+      # The -no-color flag removes any colored formatting, making it easier to save and process the output in plain text.
+      # The 2>&1 part redirects any error messages (stderr) to standard output (stdout).
+      # The > /tmp/plan.txt part writes the output (stdout) to a file named plan.txt in the /tmp directory.
+      - name: Terraform Show
+        id: show
+        run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
+          
+
+      # What the Code Does:
+      # Read a File:
+      # Reads the Terraform plan output from /tmp/plan.txt.
+      
+      # Split the File into Chunks:
+      # Splits the file content into chunks of up to 65536 characters to fit GitHub's comment body size limit.
+      
+      # Generate Comments:
+      # For each chunk, it formats a detailed Markdown comment using template literals.
+      
+      # Post Comments:
+      # Uses the GitHub REST API (github.rest.issues.createComment) to post comments on the pull request.
+      
+      # Summary:
+      # Language: JavaScript.
+      # Runtime: Node.js (executed within GitHub Actions via actions/github-script).
+      # Purpose: Reads, processes, and posts Terraform plan outputs as comments on a GitHub pull request.
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const plan = fs.readFileSync("/tmp/plan.txt", "utf8");
+            const maxGitHubBodyCharacters = 65536;
+
+            function chunkSubstr(str, size) {
+              const numChunks = Math.ceil(str.length / size)
+              const chunks = new Array(numChunks)
+              for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+                chunks[i] = str.substr(o, size)
+              }
+              return chunks
+            }
+
+            // Split the Terraform plan into chunks if it's too big and can't fit into the GitHub Action
+            var plans = chunkSubstr(plan, maxGitHubBodyCharacters); 
+            for (let i = 0; i < plans.length; i++) {
+              const output = `### ${{ inputs.plan-title }} Part # ${i + 1}
+              #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+              #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+              #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+              <details><summary>Show Plan</summary>
+              \`\`\`\n
+              ${plans[i]}
+              \`\`\`
+              </details>
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ inputs.working-directory }}\`, Workflow: \`${{ github.workflow }}\`*`;   
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+      # The workflow is triggered by a push event (github.event_name == 'push').
+      # The push is targeting the prod branch (github.ref == 'refs/heads/prod').
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
+        run: terraform apply -input=false tf.plan       # no input
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
+        shell: bash   # This command will run using the bash shell, which is the default for many Linux-based runners
+
+  ansible:
+    name: "Ansible - Deploy"
+    runs-on: ubuntu-latest  # Ansible will also run on an Ubuntu-based runner
+    needs: terraform         # Ensures Ansible runs after the Terraform job
+    environment: staging          # name shouldbe same you used in github environment
+
+    steps:
+      # Checkout repository code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Set up Ansible
+      - name: Set up Ansible
+        uses: shivammathur/setup-ansible@v2
+        with:
+          ansible-version: "2.9"  # Set the desired Ansible version
+
+      # Copy the Ansible playbook (assumes the playbook is in the root or staging folder)
+      - name: Run Ansible Playbook
+        # Adjust path to your Ansible playbook as needed
+        run: |
+          ansible-playbook -i ../../ansible/inventories/aws_ec2.yaml ../../ansible/playbook_jinja2.yml  
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"  # Disable host key checking for SSH connections

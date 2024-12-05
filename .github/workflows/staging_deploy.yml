@@ -157,6 +157,88 @@ jobs:                 # every job needs a host to run the job
         working-directory: ./Terraform/prod/Network # Use your environment folder
         shell: bash   # This command will run using the bash shell, which is the default for many Linux-based runners
 
+#---------------------------------------------------------
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt 
+        continue-on-error: true
+        working-directory: ./Terraform/prod/Webserver      # it's all in prod branch
+
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./Terraform/prod/Webserver
+
+           
+      - name: Terraform Validate        # Terraform validate is for check that Does or Does Not Connect to Providers(aws in this case)
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./Terraform/prod/Webserver
+
+    
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -input=false -no-color -out tf.plan     # output the plan result in tf.plan
+        working-directory: ./Terraform/prod/Webserver # Use your environment folder
+        continue-on-error: true   # ensures subsequent steps run even if this fails.
+      
+      - name: Get result
+        run: echo "${{ steps.validate.outputs.stdout }}"    
+      
+      - name: Terraform Show
+        id: show
+        run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
+        working-directory: ./Terraform/prod/Webserver # Use your environment folder
+          
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const plan = fs.readFileSync("/tmp/plan.txt", "utf8");
+            const maxGitHubBodyCharacters = 65536;
+
+            function chunkSubstr(str, size) {
+              const numChunks = Math.ceil(str.length / size)
+              const chunks = new Array(numChunks)
+              for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+                chunks[i] = str.substr(o, size)
+              }
+              return chunks
+            }
+
+            // Split the Terraform plan into chunks if it's too big and can't fit into the GitHub Action
+            var plans = chunkSubstr(plan, maxGitHubBodyCharacters); 
+            for (let i = 0; i < plans.length; i++) {
+              const output = `### ${{ inputs.plan-title }} Part # ${i + 1}
+              #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+              #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+              #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+              <details><summary>Show Plan</summary>
+              \`\`\`\n
+              ${plans[i]}
+              \`\`\`
+              </details>
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ inputs.working-directory }}\`, Workflow: \`${{ github.workflow }}\`*`;   
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+      # The workflow is triggered by a push event (github.event_name == 'push').
+      # The push is targeting the prod branch (github.ref == 'refs/heads/prod').
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
+        run: terraform apply -input=false tf.plan       # no input
+        working-directory: ./Terraform/prod/Webserver # Use your environment folder
+        shell: bash   # This command will run using the bash shell, which is the default for many Linux-based runners
+
   ansible:
     name: "Ansible - Deploy"
     runs-on: ubuntu-latest  # Ansible will also run on an Ubuntu-based runner

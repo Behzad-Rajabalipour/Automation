@@ -1,0 +1,13 @@
+# Ignore Git directory and Terraform folders
+.git/
+.terraform/
+prod_network_module/
+dev_network_module/
+
+# Ignore specific file types
+*.pem
+*.pub
+*.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.txt

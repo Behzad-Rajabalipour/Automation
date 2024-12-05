@@ -1,0 +1,12 @@
+# ansible-inventory -i inventories/aws_ec2.yaml --graph
+---
+plugin: aws_ec2
+regions:
+  - us-east-1
+keyed_groups:
+  - key: tags.Type     # Groups instances by their Type tag, like Type = linux or Type = windows
+    prefix: tag         # Adds the prefix tag_ to the group names, like tag_linx
+filters:
+  instance-state-name : running
+compose:
+  ansible_host: public_ip_address     # shows their public ip address

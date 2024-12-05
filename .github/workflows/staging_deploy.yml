@@ -55,25 +55,25 @@ jobs:                 # every job needs a host to run the job
         id: fmt
         run: terraform fmt 
         continue-on-error: true
-        working-directory: ./Terraform/prod/Network      # it's all in prod branch
+        working-directory: ../../Terraform/prod/Network      # it's all in prod branch
 
 
       - name: Terraform Init
         id: init
         run: terraform init
-        working-directory: ./Terraform/prod/Network
+        working-directory: ../../Terraform/prod/Network 
 
            
       - name: Terraform Validate        # Terraform validate is for check that Does or Does Not Connect to Providers(aws in this case)
         id: validate
         run: terraform validate -no-color
-        working-directory: ./Terraform/prod/Network
+        working-directory: ../../Terraform/prod/Network 
 
     
       - name: Terraform Plan
         id: plan
         run: terraform plan -input=false -no-color -out tf.plan     # output the plan result in tf.plan
-        working-directory: ./Terraform/prod/Network # Use your environment folder
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
         continue-on-error: true   # ensures subsequent steps run even if this fails.
 
       # steps = all steps
@@ -90,7 +90,7 @@ jobs:                 # every job needs a host to run the job
       - name: Terraform Show
         id: show
         run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
-        working-directory: ./Terraform/prod/Network # Use your environment folder
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
           
 
       # What the Code Does:
@@ -154,7 +154,7 @@ jobs:                 # every job needs a host to run the job
       - name: Terraform Apply
         if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
         run: terraform apply -input=false tf.plan       # no input
-        working-directory: ./Terraform/prod/Network # Use your environment folder
+        working-directory: ../../Terraform/prod/Network  # Use your environment folder
         shell: bash   # This command will run using the bash shell, which is the default for many Linux-based runners
 
   ansible:

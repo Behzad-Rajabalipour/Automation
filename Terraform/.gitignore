@@ -5,8 +5,8 @@ prod_network_module/
 dev_network_module/
 
 # Ignore specific file types
-*.pem
-*.pub
+# *.pem
+# *.pub
 *.terraform.lock.hcl
 *.tfstate
 *.tfstate.*

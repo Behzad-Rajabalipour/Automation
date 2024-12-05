@@ -9,13 +9,13 @@ on:
     branches:
     - prod
     paths:
-    - staging/**
+    - Terraform/**
 
   pull_request:
     branches:
     - prod
     paths: 
-    - staging/**      #  change to any file or folder recursively within the staging directory
+    - Terraform/**      #  change to any file or folder recursively within the staging directory
 
   # A push occurs to the prod branch.
   # The changes involve files in the staging/ directory or its subdirectories, within the prod branch

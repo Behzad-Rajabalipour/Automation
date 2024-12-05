@@ -130,7 +130,7 @@ resource "aws_instance" "private_instance" {
 }
 
 resource "aws_key_pair" "keyName" {
-  count      = length(data.aws_key_pair.existing_key.ids) == 0 ? 1 : 0
+  count      = length(data.aws_key_pair.existing_key.id) == 0 ? 1 : 0
   key_name   = var.keyName
   public_key = file("./${var.keyName}.pub")  # Replace with the path to your public key
 }

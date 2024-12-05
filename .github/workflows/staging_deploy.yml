@@ -158,19 +158,6 @@ jobs:                 # every job needs a host to run the job
         shell: bash   # This command will run using the bash shell, which is the default for many Linux-based runners
 
 #---------------------------------------------------------
-
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt 
-        continue-on-error: true
-        working-directory: ./Terraform/prod/Webserver      # it's all in prod branch
-
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-        working-directory: ./Terraform/prod/Webserver
-
            
       - name: Terraform Validate        # Terraform validate is for check that Does or Does Not Connect to Providers(aws in this case)
         id: validate

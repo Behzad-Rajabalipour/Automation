@@ -92,10 +92,11 @@ resource "aws_instance" "public_instance" {
       ? { 
           Name = "Bastion VM webserver${count.index + 1}",
           Role = "Bastion VM"
+          Type = "type1"
         }
       : { 
           Name = "webserver${count.index + 1}",
-          Type = contains([1, 3], count.index) ? "type1" : null
+          Type = contains([3], count.index) ? "type1" : null
         }
   )
 }

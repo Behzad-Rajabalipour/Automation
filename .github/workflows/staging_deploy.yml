@@ -102,10 +102,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Ansible
-        uses: shivammathur/setup-ansible@v2
+      - name: Set up Python (for Ansible)
+        uses: actions/setup-python@v2
         with:
-          ansible-version: "2.9"
+          python-version: "3.10.8"
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible==2.9
 
       - name: Run Ansible Playbook
         run: |

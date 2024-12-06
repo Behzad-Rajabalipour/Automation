@@ -1,4 +1,5 @@
 ---
 ansible_user                 : ec2-user 
-ansible_ssh_private_key_file : ~/.ssh/prodKey       # it will store in the GitHub Action Ubuntu server
+# it will store in the GitHub Action Ubuntu server
+ansible_ssh_private_key_file : ~/.ssh/prodKey       
 shell                        : /bin/bash

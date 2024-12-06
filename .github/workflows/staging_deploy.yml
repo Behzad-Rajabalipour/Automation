@@ -95,7 +95,7 @@ jobs:
   ansible:
     name: "Ansible - Deploy"
     runs-on: ubuntu-latest
-    needs: terraform
+    # needs: terraform
     environment: staging
     
     env:

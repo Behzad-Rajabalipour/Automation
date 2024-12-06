@@ -32,3 +32,4 @@ output "target_group_arn" {
 output "ALB_SG_id" {
   value = module.vpc-dev.ALB_SG_id
 }
+

@@ -18,84 +18,84 @@ permissions:
   pull-requests: write
 
 jobs:
-  # terraform:
-  #   name: "Terraform - Network and Webserver"
-  #   runs-on: ubuntu-latest
-  #   environment: staging
-  #   env:
-  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+  terraform:
+    name: "Terraform - Network and Webserver"
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v2
-  #       with:
-  #         terraform_version: 1.1.9
-  #         terraform_wrapper: true
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.1.9
+          terraform_wrapper: true
 
-  #     # --- Network Infrastructure ---
-  #     - name: Terraform Format (Network)
-  #       id: fmt-network
-  #       run: terraform fmt
-  #       working-directory: ./Terraform/prod/Network
-  #       continue-on-error: true
+      # --- Network Infrastructure ---
+      - name: Terraform Format (Network)
+        id: fmt-network
+        run: terraform fmt
+        working-directory: ./Terraform/prod/Network
+        continue-on-error: true
 
-  #     - name: Terraform Init (Network)
-  #       id: init-network
-  #       run: terraform init
-  #       working-directory: ./Terraform/prod/Network
+      - name: Terraform Init (Network)
+        id: init-network
+        run: terraform init
+        working-directory: ./Terraform/prod/Network
 
-  #     - name: Terraform Validate (Network)
-  #       id: validate-network
-  #       run: terraform validate -no-color
-  #       working-directory: ./Terraform/prod/Network
+      - name: Terraform Validate (Network)
+        id: validate-network
+        run: terraform validate -no-color
+        working-directory: ./Terraform/prod/Network
 
-  #     - name: Terraform Plan (Network)
-  #       id: plan-network
-  #       run: terraform plan -input=false -no-color -out=tf.plan
-  #       working-directory: ./Terraform/prod/Network
+      - name: Terraform Plan (Network)
+        id: plan-network
+        run: terraform plan -input=false -no-color -out=tf.plan
+        working-directory: ./Terraform/prod/Network
 
-  #     - name: Terraform Apply (Network)
-  #       id: apply-network
-  #       run: terraform apply -input=false tf.plan
-  #       working-directory: ./Terraform/prod/Network
+      - name: Terraform Apply (Network)
+        id: apply-network
+        run: terraform apply -input=false tf.plan
+        working-directory: ./Terraform/prod/Network
 
-  #     # --- Webserver Infrastructure ---
-  #     - name: Terraform Format (Webserver)
-  #       id: fmt-webserver
-  #       run: terraform fmt
-  #       working-directory: ./Terraform/prod/Webserver
-  #       continue-on-error: true
+      # --- Webserver Infrastructure ---
+      - name: Terraform Format (Webserver)
+        id: fmt-webserver
+        run: terraform fmt
+        working-directory: ./Terraform/prod/Webserver
+        continue-on-error: true
 
-  #     - name: Terraform Init (Webserver)
-  #       id: init-webserver
-  #       run: terraform init
-  #       working-directory: ./Terraform/prod/Webserver
+      - name: Terraform Init (Webserver)
+        id: init-webserver
+        run: terraform init
+        working-directory: ./Terraform/prod/Webserver
 
-  #     - name: Terraform Validate (Webserver)
-  #       id: validate-webserver
-  #       run: terraform validate -no-color
-  #       working-directory: ./Terraform/prod/Webserver
+      - name: Terraform Validate (Webserver)
+        id: validate-webserver
+        run: terraform validate -no-color
+        working-directory: ./Terraform/prod/Webserver
 
-  #     - name: Terraform Plan (Webserver)
-  #       id: plan-webserver
-  #       run: terraform plan -input=false -no-color -out=tf.plan
-  #       working-directory: ./Terraform/prod/Webserver
+      - name: Terraform Plan (Webserver)
+        id: plan-webserver
+        run: terraform plan -input=false -no-color -out=tf.plan
+        working-directory: ./Terraform/prod/Webserver
 
-  #     - name: Terraform Apply (Webserver)
-  #       id: apply-webserver
-  #       run: terraform apply -input=false tf.plan
-  #       working-directory: ./Terraform/prod/Webserver
+      - name: Terraform Apply (Webserver)
+        id: apply-webserver
+        run: terraform apply -input=false tf.plan
+        working-directory: ./Terraform/prod/Webserver
 
   ansible:
     name: "Ansible - Deploy"
     runs-on: ubuntu-latest
-    # needs: terraform
+    needs: terraform
     environment: staging
     
     env:
@@ -123,6 +123,7 @@ jobs:
           cat ./ansible/inventories/aws_ec2.yaml
       
       - name: Add SSH Key
+      # it will store in the GitHub Action Ubuntu server
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.ANSIBLE_PRIVATE_KEY }}" > ~/.ssh/prodKey

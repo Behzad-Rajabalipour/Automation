@@ -132,7 +132,7 @@ resource "aws_instance" "private_instance" {
 
 resource "aws_key_pair" "keyName" {
   key_name   = var.keyName
-  public_key = file("./${var.keyName}.pub")  # Replace with the path to your public key
+  public_key = file("~/.ssh/${var.keyName}.pub")  # Replace with the path to your public key
 }
 
 #security Group

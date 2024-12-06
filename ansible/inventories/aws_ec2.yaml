@@ -12,4 +12,4 @@ compose:
   ansible_host: public_ip_address     # ansible_host: is mandatory like ansible_user: in tag_type1.yaml
   ansible_hostname: public_ip_address   # i used it in index.j2 file
   # ansible_user                 : ec2-user 
-  # ansible_ssh_private_key_file : ~/.ssh/prodKey
+  # ansible_ssh_private_key_file : ~/.ssh/prodKey     # it will store in the GitHub Action Ubuntu server

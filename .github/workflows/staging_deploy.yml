@@ -118,6 +118,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install ansible==2.9
 
+      - name: Install boto3 and botocore
+        run: |
+          python -m pip install boto3 botocore
+
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ./ansible/inventories/aws_ec2.yaml ./ansible/playbook_jinja2.yaml

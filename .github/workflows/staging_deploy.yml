@@ -116,7 +116,7 @@ jobs:
       - name: Install Required Libraries
         run: |
           python -m pip install --upgrade pip
-          pip install ansible==2.9 boto3 botocore Jinja2<3.1
+          pip install ansible==2.9 boto3 botocore "Jinja2<3.1"
 
       - name: Verify Inventory File
         run: |

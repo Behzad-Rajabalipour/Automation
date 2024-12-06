@@ -122,6 +122,12 @@ jobs:
         run: |
           cat ./ansible/inventories/aws_ec2.yaml
 
+      - name: Add SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ANSIBLE_PRIVATE_KEY }}" > ~/.ssh/prodKey
+          chmod 400 ~/.ssh/prodKey
+
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ./ansible/inventories/aws_ec2.yaml ./ansible/playbook_jinja2.yaml

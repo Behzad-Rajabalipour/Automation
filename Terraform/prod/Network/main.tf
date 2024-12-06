@@ -18,7 +18,3 @@ module "vpc-dev" {
 
 
 
-
-
-
-

@@ -7,7 +7,6 @@
     source_file: ./index.j2
     dest_file: /var/www/html
    
-
   tasks:
     - name: Install Apache Web Server for RPM
       yum: name=httpd state=latest

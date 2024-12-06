@@ -21,7 +21,8 @@
       register: local_ipv4_address
       warn: false
     
-    - debug:
+    - name: Print Local IPv4 addres
+      debug:
         msg: "Local IPv4 address: {{ local_ipv4_address.stdout }}"
       
     - name:     Generate index.html from jinja2 template and copy to the remote host

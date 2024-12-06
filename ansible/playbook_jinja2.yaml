@@ -19,11 +19,11 @@
     - name: Get the local IPv4 address
       shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
       register: local_ipv4_address
-      warn: false
+      args:
+        warn: false
     
-    - name: Print Local IPv4 addres
-      debug:
-        msg: "Local IPv4 address: {{ local_ipv4_address.stdout }}"
+    - debug:
+        msg: "Local IPv4 address: {{ local_ipv4_address.stdout }}"  # For shell
       
     - name:     Generate index.html from jinja2 template and copy to the remote host
       template: src={{ source_file }} dest={{ dest_file }}/index.html mode=0555     # replacing The content of the template(here is Jinja2 template) which includes variables, loops, and condition with dest(index.html). the purpose is to make the dynamic webpage 

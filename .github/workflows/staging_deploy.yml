@@ -120,6 +120,6 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i ./ansible/inventories/aws_ec2.yaml ./ansible/playbook_jinja2.yml
+          ansible-playbook -i ./ansible/inventories/aws_ec2.yaml ./ansible/playbook_jinja2.yaml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"

@@ -14,5 +14,3 @@ module "vpc-dev" {
   default_tags       = var.default_tags
 }
 
-
-

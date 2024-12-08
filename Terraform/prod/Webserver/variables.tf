@@ -39,3 +39,18 @@ variable "keyName" {
   type        = string
   description = "Name of the key"
 }
+
+#-----------------------------------------------
+# ASG
+
+variable "asg_min_size" {
+  default = 1
+}
+
+variable "asg_max_size" {
+  default = 3
+}
+
+variable "asg_desired_capacity" {
+  default = 1
+}

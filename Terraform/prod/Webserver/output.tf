@@ -14,3 +14,7 @@ output "private_instances_subnet_ids" {
 output "ec2_vpc_id" {
   value = data.terraform_remote_state.prod_net_tfstate.outputs.vpc_id
 }
+
+output "public_instance_SG_id" {
+  value = aws_security_group.public_instance_SG.id
+}

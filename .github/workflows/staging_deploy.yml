@@ -32,11 +32,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10.8'
+
+      - name: Install Required Libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible==2.9 boto3 botocore "Jinja2<3.1"
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.1.9
           terraform_wrapper: true
+      
+      # --- Create S3 bucket with Python SDK ---
+      - name: Run bucket creation script
+        run: python ./Terraform/prod/Network/create_s3_bucket.py
 
       # --- Network Infrastructure ---
       - name: Terraform Format (Network)
@@ -107,16 +121,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Set up Python (for Ansible)
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.10.8"
-
-      - name: Install Required Libraries
-        run: |
-          python -m pip install --upgrade pip
-          pip install ansible==2.9 boto3 botocore "Jinja2<3.1"
 
       - name: Verify Inventory File
         run: |

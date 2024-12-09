@@ -121,11 +121,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
+      
+      # we have to install dependencies again because this is different host machine than (Terraform)
       - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.10.8'
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10.8'
 
       - name: Install Required Libraries
         run: |

@@ -1,0 +1,90 @@
+AWS Lab:
+aws sts get-caller-identity
+vi ~/.aws/credentials
+vi ~/.aws/config
+aws sts get-caller-identity          => it checks if you are connected to aws CLI
+aws iam create-user --user-name behzad
+
+#SSH Key Generation
+ssh-keygen -t rsa -f ~/.ssh/week1
+ssh-keygen -m PEM -t rsa -f /home/ec2-user/.ssh/week1
+
+#Import keypair : 
+aws ec2 import-key-pair --key-name "week1" --public-key-material  fileb://~/.ssh/week1.pub
+
+#Create EC2 Instance via AWS Commands
+
+aws ec2 run-instances --image-id resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --instance-type t2.micro --key-name week1
+
+# SG creation
+
+aws ec2 create-security-group --group-name acs730-week2-sg  --description "Security Group for Admin Traffic"
+
+#Ingress - Allow SSH
+aws ec2 authorize-security-group-ingress --group-name acs730-week2-sg --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+#Attach new SG to newly created EC2 insatnce
+aws ec2 modify-instance-attribute --instance-id i-0311fdb0c2ced4833 --groups sg-0fe68f9333934e8fe
+
+#SSH connection from CLI/C9 to new EC2
+ssh -i ~/.ssh/week1 ec2-user@ec2-52-91-44-42.compute-1.amazonaws.com 
+
+
+# connect from ssh to GitHub
+1. git init
+2. git add .
+3. git commit -m "fist commit"
+4. git remote add origin git@github.com:Behzad-Rajabalipour/network_module.git
+
+## first way to create a key
+5. ssh-keygen -t rsa -f ./gitKey
+6. GitHub  Settings  SSH and GPG keys  new SSH KEY  paste public gitKey
+7. eval "$(ssh-agent -s)"     => Start the SSH agent in the background
+8. ssh-add ./gitKey	=> add private key to the agent
+9. ssh -T git@github.com   => test connection
+10. git push -u origin master
+(if you close ssh, you will be disconnected, because agent will be removed)
+11. git rm -r --cached dev_network_module/       # If the dev_network_module/ folder is still being tracked by Git, it may have been added before the .gitignore rule was set. Here’s how to ensure it’s ignored:
+
+## second way through username and password
+12. password to login GitHub from website and PowerShell terminal are different
+12. GitHub  Settings  Developer Settings  Personal Access Token  Generate New Token (Classic)
+13. Now you have token, in PowerShell terminal you can use your username and token for password
+14. cat ~/.git-credentials  => you can see credentials
+15. rm ~/.git-credentials   => to remove PowerShell from GitHub
+
+git pull origin master --allow-unrelated-histories --no-rebase  => pull mikone az git, file haro taghir midi, add mikoni, commit mikoni, push mikoni. in command age github file hash bahat fargh dasht bazam kar mikone
+git status => neshun mide che file hayi toye untracked hastan, yani add shodan vali commit nashudan hanuz
+git clean -f => az untracked dar miyare
+age yek file mesle .pem dakhele yeki az commit ha bashe, bayad daresh biyarim az un commit ta betunim push konim
+
+terraform init -upgrade => age file haye dakhele github ro update kardi, bayad terafform init -upgrade bezani ke az cache bar nadare
+
+remove file from github but have the file in your local:
+1. git pull origin master    => if both git and github are at the same stage, I mean git is not behind github
+2. git rm --cached .terraform.lock.hcl terraform.tfstate    => remove from cached
+3. git commit -m "s"
+4. git remote -v    # neshun mide remote be koja vasle, URL ro neshun mide
+5. git push origin master
+
+
+Readme.txt:
+aws s3api create-bucket --bucket dev-behzad-bucket   # create s3 bucket, after connected to aws cli
+aws s3api create-bucket --bucket prod-behzad-bucket   # create s3 bucket, after connected to aws cli
+
+ssh-keygen -t rsa -f ~/.ssh/devKey
+ssh-keygen -t rsa -f ~/.ssh/prodKey
+chmod 400 ~/.ssh/devKey ~/.ssh/prodKey  => because we are in .ssh path so we can change security level to read mode(chmod 400)
+
+scp -i ~/.ssh/devKey ~/.ssh/devKey ec2-user@54.243.94.151:/home/ec2-user     => copy keypair from local linux to ec2 linux(Basion host)
+scp -i ~/.ssh/devKey ~/.ssh/prodKey ec2-user@54.243.94.151:/home/ec2-user    => copy prodKey from local linux to ec2 linux(Basion host)
+
+#-----------------------------------------------------
+
+# for installing boto3 and botocore in myenv
+# myenv baraye run kardane ./Terraform/prod/Network/create_s3_bucket.py Sk hast dar Ubuntu CMD(wsl)
+Ubuntu CMD(wsl):
+    sudo apt-get install python3-venv
+    python3 -m venv myenv
+    source myenv/bin/activate
+    pip install boto3 botocore

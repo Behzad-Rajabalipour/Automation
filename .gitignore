@@ -11,3 +11,4 @@ myenv/
 *.terraform.lock.hcl
 *.tfstate
 *.tfstate.*
+*.mp4
